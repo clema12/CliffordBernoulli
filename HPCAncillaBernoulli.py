@@ -4,6 +4,7 @@ import stim
 import random
 from seeds import *
 import sys
+import csv
 
 def getCutStabilizers(binaryMatrix, cuts):
     """
@@ -117,7 +118,9 @@ def AncillaBernoulliCircuit(L,T,p,initseed,finalflag = True):
 
         #Control map
         else: #prob p
-            if s.measure(L-1) == True: #measure last qubit with True <-> |1>
+            s.cnot(0, L-1)
+            if s.measure(L-1) == False: #measure last qubit with True ==> |00> \ |11> eigenspace
+                s.cnot(L-1, 0) #completes the MZZ gate decomposition
                 MeasureOutcomes.append(1)
                 tab2 = s.current_inverse_tableau()
                 X = stim.Tableau.from_named_gate("X")
@@ -125,6 +128,7 @@ def AncillaBernoulliCircuit(L,T,p,initseed,finalflag = True):
                 s.set_inverse_tableau(tab2)
             else: 
                 MeasureOutcomes.append(0)
+                s.cnot(L-1,0) #Completes the MZZ gate decomposition
             tab2 = s.current_inverse_tableau()
             swap = stim.Tableau.from_named_gate("SWAP")
             for i in range(L-1,0,-1):
@@ -173,10 +177,23 @@ TotalRealizationEntropysquared = np.asarray(TotalRealizationEntropysquared)
 TotalRealizationMagnetization = np.asarray(TotalRealizationMagnetization)
 TotalRealizationMagnetizationsquared = np.asarray(TotalRealizationMagnetizationsquared)
 measurementarr = np.asarray(measurementarr)
-np.save("L" + str(L) + "P" + str(int(round(float(p)*1000,0))) + "DenseProbAncillaBernoulliDataEntropy",TotalRealizationEntropy)
-np.save("L" + str(L) + "P" + str(int(round(float(p)*1000,0))) + "DenseProbAncillaBernoulliDataEntropysquared",TotalRealizationEntropysquared)
-np.save("L" + str(L) + "P" + str(int(round(float(p)*1000,0))) + "DenseProbAncillaBernoulliDataMag",TotalRealizationMagnetization)
-np.save("L" + str(L) + "P" + str(int(round(float(p)*1000,0))) + "DenseProbAncillaBernoulliDataMagsquared",TotalRealizationMagnetizationsquared)
-np.save("L" + str(L) + "P" + str(int(round(float(p)*1000,0))) + "DenseProbAncillaBernoulliDataMeasurements",measurementarr)
+# np.save("L" + str(L) + "P" + str(int(round(float(p)*1000,0))) + "DenseProbAncillaBernoulliDataEntropy",TotalRealizationEntropy)
+# # np.save("L" + str(L) + "P" + str(int(round(float(p)*1000,0))) + "DenseProbAncillaBernoulliDataEntropysquared",TotalRealizationEntropysquared)
+# np.save("L" + str(L) + "P" + str(int(round(float(p)*1000,0))) + "DenseProbAncillaBernoulliDataMag",TotalRealizationMagnetization)
+# # np.save("L" + str(L) + "P" + str(int(round(float(p)*1000,0))) + "DenseProbAncillaBernoulliDataMagsquared",TotalRealizationMagnetizationsquared)
+# np.save("L" + str(L) + "P" + str(int(round(float(p)*1000,0))) + "DenseProbAncillaBernoulliDataMeasurements",measurementarr)
+
+with open(f'L{L}P{int(round(float(p)*1000,0))}"DenseProbAncillaBernoulliDataEntropy', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(TotalRealizationEntropy)
+
+with open(f'L{L}P{int(round(float(p)*1000,0))}DenseProbAncillaBernoulliDataMag', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(TotalRealizationMagnetization)
+
+with open(f'L{L}P{int(round(float(p)*1000,0))}DenseProbAncillaBernoulliDataMeasurements', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(measurementarr)
+
 #stop = timer()
 #print(stop-start)
